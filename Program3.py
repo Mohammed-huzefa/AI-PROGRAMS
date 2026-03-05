@@ -1,28 +1,68 @@
 import heapq
 
-def h(n,g):
-    return abs(ord(n)-ord(g))
+class Node:
+    def __init__(self, state, parent=None, cost=0, h=0):
+        self.state = state
+        self.parent = parent
+        self.cost = cost
+        self.h = h
 
-def astar(start,goal,graph):
-    q=[(h(start,goal),0,start,[start])]
-    v=set()
+    def __lt__(self, other):
+        return (self.cost + self.h) < (other.cost + other.h)
 
-    while q:
-        f,c,n,path=heapq.heappop(q)
 
-        if n==goal:
-            return path
+def astar(start, goal, graph):
 
-        v.add(n)
+    frontier = []
+    heapq.heappush(frontier, Node(start, None, 0, abs(ord(start)-ord(goal))))
 
-        for nb,w in graph.get(n,[]):
-            if nb not in v:
-                heapq.heappush(q,(c+w+h(nb,goal),c+w,nb,path+[nb]))
+    visited = set()
 
-g={'A':[('B',1),('C',3)],
-   'B':[('D',2)],
-   'C':[('D',4)]}
+    while frontier:
 
-p=astar('A','D',g)
+        current = heapq.heappop(frontier)
 
-print("Path:",p)
+        if current.state == goal:
+            path = []
+            while current:
+                path.append(current.state)
+                current = current.parent
+            return path[::-1]
+
+        visited.add(current.state)
+
+        for neighbor, cost in graph.get(current.state, []):
+            if neighbor not in visited:
+                heapq.heappush(frontier,
+                    Node(neighbor,current,current.cost+cost,abs(ord(neighbor)-ord(goal))))
+
+    return None
+
+
+print("Define the graph")
+graph = {}
+
+n = int(input("Enter number of edges: "))
+
+for _ in range(n):
+    u,v,c = input("Enter edge (u v cost): ").split()
+    c = int(c)
+
+    if u not in graph: graph[u] = []
+    if v not in graph: graph[v] = []
+
+    graph[u].append((v,c))
+    graph[v].append((u,c))
+
+
+start = input("Enter start node: ")
+goal = input("Enter goal node: ")
+
+path = astar(start,goal,graph)
+
+if path:
+    print("Optimal path found:")
+    for i in path:
+        print(i,end=" ")
+else:
+    print("No path found")
