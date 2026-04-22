@@ -1,38 +1,59 @@
 def forward_chaining(rules, facts, goal):
-    facts = set(facts)
-    while True:
-        added = False
-        for cond, res in rules:
-            if all(c in facts for c in cond) and res not in facts:
-                facts.add(res)
-                added = True
-                if res == goal:
+    inferred_facts = set(facts)
+    new_facts = True
+    
+    while new_facts:
+        new_facts = False
+        
+        for rule in rules:
+            condition, result = rule
+            
+            if all(cond in inferred_facts for cond in condition) and result not in inferred_facts:
+                inferred_facts.add(result)
+                new_facts = True
+                
+                if result == goal:
                     return True
-        if not added:
-            return False
-
-
-def backward_chaining(rules, facts, goal):
-    if goal in facts:
-        return True
-    for cond, res in rules:
-        if res == goal:
-            if all(backward_chaining(rules, facts, c) for c in cond):
-                return True
+    
     return False
 
 
+def backward_chaining(rules, facts, goal):
+    def ask(query):
+        if query in facts:
+            return True
+        
+        for rule in rules:
+            condition, result = rule
+            if result == query and all(ask(cond) for cond in condition):
+                return True
+        
+        return False
+    
+    return ask(goal)
+
+
 rules = [
-    (['hair','live young'],'mammal'),
-    (['feathers','fly'],'bird')
+    (['hair', 'live young'], 'mammal'),
+    (['feathers', 'fly'], 'bird')
 ]
 
-facts = ['hair','live young']
+facts = ['hair', 'live young']
+goal = 'mammal'
 
-if forward_chaining(rules,facts,'mammal'):
-    print("Cat is Mammal")
+is_mammal = forward_chaining(rules, facts, goal)
 
-facts = ['feathers','fly']
+if is_mammal:
+    print("The cat is classified as a mammal.")
+else:
+    print("The cat is not classified as a mammal.")
 
-if backward_chaining(rules,facts,'bird'):
-    print("Pigeon is Bird")
+facts = ['feathers', 'fly']
+goal = 'bird'
+
+is_bird = backward_chaining(rules, facts, goal)
+
+if is_bird:
+    print("The pigeon is classified as a bird.")
+else:
+    print("The pigeon is not classified as a bird.")
