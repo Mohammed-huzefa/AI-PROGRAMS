@@ -2,11 +2,11 @@ import heapq
 
 class Node:
     def __init__(self, state, parent=None, action=None, cost=0, heuristic=0):
-        self.state = state      # Current state in the search space
-        self.parent = parent    # Parent node
-        self.action = action    # Action that led to this node from the parent node
-        self.cost = cost        # Cost to reach this node from the start node
-        self.heuristic = heuristic  # Heuristic estimate of the cost to reach the goal
+        self.state = state
+        self.parent = parent
+        self.action = action
+        self.cost = cost
+        self.heuristic = heuristic
     
     def __lt__(self, other):
         return (self.cost + self.heuristic) < (other.cost + other.heuristic)
@@ -34,7 +34,6 @@ def ao_star_search(start_state, goal_state, graph):
         current_state = current_node.state
         
         if current_state == goal_state:
-            # Reconstruct the path from the goal node to the start node
             path = []
             while current_node.parent is not None:
                 path.append((current_node.action, current_node.state))
@@ -50,25 +49,21 @@ def ao_star_search(start_state, goal_state, graph):
                 new_node = Node(neighbor, current_node, f"Move to {neighbor}", new_cost, heuristic(neighbor, goal_state))
                 heapq.heappush(frontier, new_node)
     
-    return None  # No path found
+    return None
 
 def heuristic(state, goal_state):
-    # Simple heuristic function (e.g., straight-line distance)
-    heuristic_values = {'A': 5, 'B': 3, 'C': 2, 'D': 1, 'E': 2, 'G': 0}  # Custom heuristic values based on problem domain
-    return heuristic_values.get(state, float('inf'))  # Default to infinity if state not found
+    heuristic_values = {'A': 5, 'B': 3, 'C': 2, 'D': 1, 'E': 2, 'G': 0}
+    return heuristic_values.get(state, float('inf'))
 
 if __name__ == "__main__":
-    # Get user input to define the graph
     print("Define the graph:")
     graph = parse_graph_input()
     
     start_state = input("Enter the start state: ")
     goal_state = input("Enter the goal state: ")
     
-    # Perform AO* search using the defined graph, start state, and goal state
     path = ao_star_search(start_state, goal_state, graph)
     
-    # Print the resulting path found by AO* search
     if path:
         print("Path found:")
         for action, state in path:
