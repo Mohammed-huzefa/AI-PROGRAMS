@@ -1,36 +1,77 @@
 import heapq
 
-def h(n):
-    H={'A':5,'B':3,'C':2,'D':1,'E':2,'G':0}
-    return H.get(n,0)
+class Node:
+    def __init__(self, state, parent=None, action=None, cost=0, heuristic=0):
+        self.state = state      # Current state in the search space
+        self.parent = parent    # Parent node
+        self.action = action    # Action that led to this node from the parent node
+        self.cost = cost        # Cost to reach this node from the start node
+        self.heuristic = heuristic  # Heuristic estimate of the cost to reach the goal
+    
+    def __lt__(self, other):
+        return (self.cost + self.heuristic) < (other.cost + other.heuristic)
 
-def ao(start,goal,g):
-    q=[(h(start),start,[start])]
-    v=set()
+def parse_graph_input():
+    graph = {}
+    num_edges = int(input("Enter the number of edges: "))
+    for _ in range(num_edges):
+        u, v, cost = input("Enter an edge (format: u v cost): ").split()
+        cost = float(cost)
+        if u not in graph:
+            graph[u] = []
+        if v not in graph:
+            graph[v] = []
+        graph[u].append((v, cost))
+    return graph
 
-    while q:
-        f,n,path=heapq.heappop(q)
-
-        if n==goal:
+def ao_star_search(start_state, goal_state, graph):
+    frontier = []
+    heapq.heappush(frontier, Node(start_state, None, None, 0, heuristic(start_state, goal_state)))
+    explored = {}
+    
+    while frontier:
+        current_node = heapq.heappop(frontier)
+        current_state = current_node.state
+        
+        if current_state == goal_state:
+            # Reconstruct the path from the goal node to the start node
+            path = []
+            while current_node.parent is not None:
+                path.append((current_node.action, current_node.state))
+                current_node = current_node.parent
+            path.reverse()
             return path
+        
+        if current_state not in explored or current_node.cost < explored[current_state]:
+            explored[current_state] = current_node.cost
+            
+            for neighbor, step_cost in graph.get(current_state, []):
+                new_cost = current_node.cost + step_cost
+                new_node = Node(neighbor, current_node, f"Move to {neighbor}", new_cost, heuristic(neighbor, goal_state))
+                heapq.heappush(frontier, new_node)
+    
+    return None  # No path found
 
-        v.add(n)
+def heuristic(state, goal_state):
+    # Simple heuristic function (e.g., straight-line distance)
+    heuristic_values = {'A': 5, 'B': 3, 'C': 2, 'D': 1, 'E': 2, 'G': 0}  # Custom heuristic values based on problem domain
+    return heuristic_values.get(state, float('inf'))  # Default to infinity if state not found
 
-        for nb,c in g.get(n,[]):
-            if nb not in v:
-                heapq.heappush(q,(c+h(nb),nb,path+[nb]))
-
-    return None
-
-
-g={'A':[('B',1),('C',4)],
-   'B':[('D',2)],
-   'C':[('G',3)],
-   'D':[('G',1)]}
-
-p=ao('A','G',g)
-
-if p:
-    print("Path:",p)
-else:
-    print("No path")
+if __name__ == "__main__":
+    # Get user input to define the graph
+    print("Define the graph:")
+    graph = parse_graph_input()
+    
+    start_state = input("Enter the start state: ")
+    goal_state = input("Enter the goal state: ")
+    
+    # Perform AO* search using the defined graph, start state, and goal state
+    path = ao_star_search(start_state, goal_state, graph)
+    
+    # Print the resulting path found by AO* search
+    if path:
+        print("Path found:")
+        for action, state in path:
+            print(f"Action: {action}, State: {state}")
+    else:
+        print("No path found.")
