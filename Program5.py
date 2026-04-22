@@ -1,56 +1,28 @@
-def is_safe(board, row, col):
-    for i in range(row):
-        if board[i][col] == 1:
-            return False
+def queens(n=8):
+    sols = []
     
-    i, j = row, col
-    while i >= 0 and j >= 0:
-        if board[i][j] == 1:
-            return False
-        i -= 1
-        j -= 1
+    def bt(cols, diag1, diag2, placed):
+        r = len(placed)
+        
+        if r == n:
+            sols.append(placed[:])
+            return
+        
+        for c in range(n):
+            if c not in cols and (r - c) not in diag1 and (r + c) not in diag2:
+                bt(cols | {c}, diag1 | {r - c}, diag2 | {r + c}, placed + [c])
     
-    i, j = row, col
-    while i >= 0 and j < len(board):
-        if board[i][j] == 1:
-            return False
-        i -= 1
-        j += 1
-    
-    return True
+    bt(set(), set(), set(), [])
+    return sols
 
-def solve_queens(board, row):
-    n = len(board)
-    
-    if row >= n:
-        return True
-    
-    for col in range(n):
-        if is_safe(board, row, col):
-            board[row][col] = 1
-            
-            if solve_queens(board, row + 1):
-                return True
-            
-            board[row][col] = 0
-    
-    return False
 
-def print_board(board):
-    n = len(board)
-    for i in range(n):
-        for j in range(n):
-            print(board[i][j], end=" ")
-        print()
+sols = queens()
+print(f"Total: {len(sols)}\n")
 
-def solve_8queens():
-    n = 8
-    board = [[0] * n for _ in range(n)]
+for i, s in enumerate(sols[:2], 1):
+    print(f"Solution {i}: {s}")
     
-    if solve_queens(board, 0):
-        print("Solution found:")
-        print_board(board)
-    else:
-        print("No solution exists.")
-
-solve_8queens()
+    for r in range(8):
+        print("".join('Q' if c == s[r] else '.' for c in range(8)))
+    
+    print()
