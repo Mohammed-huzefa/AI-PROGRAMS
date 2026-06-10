@@ -1,26 +1,30 @@
-def fc(r,f,g):
-    i=set(f)
-    while 1:
-        n=0
-        for c,r in rules:
-            if all(x in i for x in c) and r not in i:
-                i.add(r)
-                n=1
-                if r==g:return 1
-        if not n:return 0
+class FC:
+    def __init__(self, r, f):
+        self.r = r
+        self.f = set(f)
 
-def bc(r,f,g):
-    if g in f:return 1
-    for c,res in r:
-        if res==g and all(bc(r,f,x) for x in c):
-            return 1
-    return 0
+    def apply(self):
+        change = True
+        while change:
+            change = False
+            for a, c in self.r:
+                if a.issubset(self.f) and c not in self.f:
+                    self.f.add(c)
+                    change = True
 
-rules=[
-(['hair','live young'],'mammal'),
-(['feathers','fly'],'bird')
+
+rules = [
+    ({"has_fur(tiger)"}, "mammal(tiger)"),
+    ({"has_feathers(penguin)", "lays_eggs(penguin)"}, "bird(penguin)")
 ]
 
-print("The cat is classified as a mammal." if fc(rules,['hair','live young'],'mammal') else "Not mammal")
+facts = {
+    "has_fur(tiger)",
+    "has_feathers(penguin)",
+    "lays_eggs(penguin)"
+}
 
-print("The pigeon is classified as a bird." if bc(rules,['feathers','fly'],'bird') else "Not bird")
+fc = FC(rules, facts)
+fc.apply()
+
+print("Derived Facts:", fc.f)
